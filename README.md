@@ -4,7 +4,7 @@
 
 RepoDriller is a Java framework that helps developers on mining software repositories. With it, you can easily extract information from any Git repository, such as commits, developers, modifications, diffs, and source codes, and quickly export CSV files.
 
-Take a look at our documentation and [our many examples](https://github.com/mauricioaniche/repodriller-tutorial). Or talk to us.
+Take a look at our documentation and [our many examples](https://github.com/mauricioaniche/repodriller-tutorial). Or [talk to us](https://groups.google.com/forum/#!forum/repodriller).
 
 # Documentation
 
@@ -12,12 +12,12 @@ Take a look at our documentation and [our many examples](https://github.com/maur
 
 You simply have to start a Java Project in Eclipse. RepoDriller is on Maven, so you can download all its dependencies by only adding this to your pom.xml. Or, if you want, you can see [an example](github.com/mauricioaniche/change-metrics):
 
-```
+```xml
 <dependency>
 	<groupId>org.repodriller</groupId>
 	<artifactId>repodriller</artifactId>
-	<version>1.3.0</version>
-</dependency> 
+	<version>1.3.1</version>
+</dependency>
 ```
 
 Always use the latest version in Maven. You can see them here: [http://www.mvnrepository.com/artifact/org.repodriller/repodriller](http://www.mvnrepository.com/artifact/org.repodriller/repodriller) . You can also see a [fully function pom.xml example](https://gist.github.com/mauricioaniche/3eba747930aea97e4adb).
@@ -57,7 +57,7 @@ Let's start with something simple: we will print the name of the developers for 
 
 *   in(): We use to configure the project (or projects) that will be analyzed.
 *   through(): The list of commits to analyze. We want all of them. See `Commits` class for a list of available options.
-*   filters(): Possible filters to commits, e.g., only commits in a certain branch 
+*   filters(): Possible filters to commits, e.g., only commits in a certain branch
 *   reverseOrder(): Commits will be analysed in reverse order. Default starts from the first commit to the latest one.
 *   process(): Visitors that will pass in each commit.
 *   mine(): The magic starts!
@@ -85,7 +85,7 @@ public class DevelopersVisitor implements CommitVisitor {
 
 	@Override
 	public void process(SCMRepository repo, Commit commit, PersistenceMechanism writer) {
-		
+
 		writer.write(
 			commit.getHash(),
 			commit.getCommitter().getName()
@@ -109,7 +109,7 @@ The first thing you configure in RepoDriller is the project you want to analyze.
 You can also initialize git repositories with their remote HTTP URLs. In this case, RepoDriller will clone the remote repository in order to manipulate the repository history. The _GitRemoteRepository_ class contains the same factory methods of _GitRepository_, but you can also configure it, like this:
 
 
-```
+```java
 	GitRemoteRepository
 		.hostedOn(gitUrl)							// URL like: https://github.com/mauricioaniche/repodriller.git
 		.inTempDir(tempDir)							// <Optional>
@@ -124,11 +124,12 @@ pass a flag to the factory:
 
 ```
 GitRepository.single("/your/project", true);
-``` 
+```
 
 ## Logging
 
-RepoDriller uses log4j to print useful information about its execution. We recommend you have a log4.xml:
+RepoDriller uses log4j to print useful information about its execution.
+**Note that this includes Exceptions and their stack traces, which will not appear in standard output.** We recommend you have a log4j.xml:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -155,9 +156,11 @@ RepoDriller uses log4j to print useful information about its execution. We recom
 </log4j:configuration>
 ```
 
+Put this file in `{project-root}/src/main/resources/` and you should see logs when RepoDriller runs.
+
 ## Selecting the Commit Range
 
-RepoDriller allows you to select the range of commits to be processed. The class _Commits_ contains different methods to that:
+RepoDriller allows you to specify the set of commits to be processed. The class _Commits_ contains different methods to this end:
 
 *   _all()_: All commits. From the first to the last.
 *   _onlyInHead()_: It only analyzes the most recent commit.
@@ -175,10 +178,10 @@ One interesting thing about RepoDriller is that it avoids huge commits. When a c
 RepoDriller comes with a set of common filters that you can apply. As an example, the `OnlyInBranches` filter makes sure
 that your Study will only visit commits which exist in specific branches.
 
-* _OnlyInBranches_: Only visits commits that belong to certain branches. 
+* _OnlyInBranches_: Only visits commits that belong to certain branches.
 * _OnlyInMainBranch_: Only visits commits that belong to the main branch of the repository.
 * _OnlyNoMerge_: Only visits commits that are not merge commits.
-* _OnlyModificationsWithFileTypes_: Only visits commits in which at least one modification was done in that file type, e.g., 
+* _OnlyModificationsWithFileTypes_: Only visits commits in which at least one modification was done in that file type, e.g.,
 if you pass ".java", then, the study will visit only commits in which at least one Java file was modified; clearly, it will skip
 other commits.
 
@@ -187,8 +190,8 @@ You can choose more than one filter as they can be decorated. A working example 
 ```
 .filters(
 	new OnlyModificationsWithFileTypes(Arrays.asList(".java", ".xml")),
-	new OnlyInBranches(Arrays.asList("master")), 
-	new OnlyNoMerge(), 
+	new OnlyInBranches(Arrays.asList("master")),
+	new OnlyNoMerge(),
 	new OnlyInMainBranch()
 );
 ```
@@ -203,7 +206,7 @@ You can get the list of modified files, as well as their diffs and current sourc
 ```java
 @Override
 public void process(SCMRepository repo, Commit commit, PersistenceMechanism writer) {
-	
+
 	for(Modification m : commit.getModifications()) {
 		writer.write(
 				commit.getHash(),
@@ -212,7 +215,7 @@ public void process(SCMRepository repo, Commit commit, PersistenceMechanism writ
 				m.getFileName(),
 				m.getType()
 		);
-		
+
 	}
 }
 ```
@@ -239,9 +242,9 @@ index f38a97d..2b96b0e 100644
 --- a/GitRepository.java
 +++ b/GitRepository.java
 @@ -72,7 +72,7 @@ public class GitRepository implements SCM {
- 
+
         private static Logger log = Logger.getLogger(GitRepository.class);
- 
+
 -       public GitRepository(String path) {
 +       public GitRepository2(String path) {
                 this.path = path;
@@ -249,12 +252,21 @@ index f38a97d..2b96b0e 100644
                 this.maxSizeOfDiff = checkMaxSizeOfDiff();
 ```
 
+You can also get diffs between two specified revisions that are not necessarily adjacent:
+
+```java
+SCM repo = new GitRepository(path/to/repo);
+List<Modification> modifications = repo.getDiffBetweenCommits(commit1.getHash(), commit2.getHash());
+```
+
+**Note: This has been implemented for Git repositories. Pull requests are welcome for this feature in Subversion repositories!**
+
 To facilitate the parsing, RepoDriller offers `DiffParser` class. This utility class parses
-the diff and returns two separate lists: lines (number and content) from the previous version and lines 
+the diff and returns two separate lists: lines (number and content) from the previous version and lines
 from the new version. As one diff may contain different blocks of diffs (happens when the file
 was modified in two parts that are far from each other), the parser returns 1 or more diff blocks.
 
-```
+```java
 // parse the diff
 DiffParser parsedDiff = new DiffParser(diff);
 
@@ -273,9 +285,7 @@ The _SCM_ class contains a blame() method, which allows you to blame a file in a
 
 `List<BlamedLine> blame(String file, String commitToBeBlamed, boolean priorCommit)`
 
-You should pass the file name (relative path), the commit which the file should be blamed, and a boolean
-informing whether you want the file to be blamed _before_ (priorCommit=true) or _after_ (priorCommit=false)
-the changes of that particular commit.
+You should pass the file name (relative path), the commit which the file should be blamed, and a boolean informing whether you want the file to be blamed _before_ (priorCommit=true) or _after_ (priorCommit=false) the changes of that particular commit.
 
 ## Managing State in the Visitor
 
@@ -293,92 +303,24 @@ import org.repodriller.scm.SCMRepository;
 public class ModificationsVisitor implements CommitVisitor {
 
 	private Map<String, Integer> devs;
-	
+
 	public ModificationsVisitor() {
 		this.devs = new HashMap<String, Integer>();
 	}
-	
+
 	@Override
 	public void process(SCMRepository repo, Commit commit, PersistenceMechanism writer) {
-		
+
 		String dev = commit.getCommitter().getName();
 		if(!devs.containsKey(dev)) devs.put(dev, 0);
-		
+
 		int currentFiles = devs.get(dev);
 		devs.put(dev, currentFiles + commit.getModifications().size());
-		
+
 	}
 
 }
 ```
-
-## Parsing Code
-
-You have the entire source code of the repository. You may want to analyze it. RepoDriller comes with JDT and ANTLR bundled. JDT is the Eclipse internal parser.
-
-Let's say we decide to count the quantity of methods in each modified file. All we have to do is to create a _CommitVisitor_, the way we are used to. This visitor will use our _JDTRunner_ to invoke a JDT visitor (yes, JDT uses visitors as well). Notice that we executed the JDT visitor, and then wrote the result.
-
-```java
-import java.io.ByteArrayInputStream;
-
-import org.repodriller.domain.Commit;
-import org.repodriller.domain.Modification;
-import org.repodriller.parser.jdt.JDTRunner;
-import org.repodriller.persistence.PersistenceMechanism;
-import org.repodriller.scm.CommitVisitor;
-import org.repodriller.scm.SCMRepository;
-
-
-public class JavaParserVisitor implements CommitVisitor {
-
-	@Override
-	public void process(SCMRepository repo, Commit commit, PersistenceMechanism writer) {
-
-		for(Modification m : commit.getModifications()) {
-		
-			if(m.wasDeleted()) continue;
-			
-			NumberOfMethodsVisitor visitor = new NumberOfMethodsVisitor();
-			new JDTRunner().visit(visitor, new ByteArrayInputStream(m.getSourceCode().getBytes()));
-			
-			int methods = visitor.getQty();
-			
-			writer.write(
-				commit.getHash(),
-				m.getFileName(),
-				methods
-			);
-			
-		}
-		
-	}
-}
-```
-
-The visitor is quite simple. It has methods for all different nodes in the file. All you have to do is to visit the right node. As an example, we will visit _MethodDeclaration_ and count the number of times it is invoked (one per each method in this file). 
-
-```java
-import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.MethodDeclaration;
-
-public class NumberOfMethodsVisitor extends ASTVisitor {
-
-	private int qty = 0;
-	
-	public boolean visit(MethodDeclaration node) {
-		
-		qty++;
-		return super.visit(node);
-	}
-	
-	public int getQty() {
-		return qty;
-	}
-}
-```
-
-
-If you want to see all methods available, check the documentation for [ASTVisitor](http://help.eclipse.org/juno/index.jsp?topic=%2Forg.eclipse.jdt.doc.isv%2Freference%2Fapi%2Forg%2Feclipse%2Fjdt%2Fcore%2Fdom%2FASTVisitor.html).
 
 ## Getting the Current Revision
 
@@ -410,32 +352,32 @@ public class JavaParserVisitor implements CommitVisitor {
 
 		try {
 			repo.getScm().checkout(commit.getHash());
-		
+
 			List<RepositoryFile> files = repo.getScm().files();
-			
+
 			for(RepositoryFile file : files) {
 				if(!file.fileNameEndsWith("java")) continue;
-				
+
 				File soFile = file.getFile();
-				
+
 				NumberOfMethodsVisitor visitor = new NumberOfMethodsVisitor();
 				new JDTRunner().visit(visitor, new ByteArrayInputStream(readFile(soFile).getBytes()));
-				
+
 				int methods = visitor.getQty();
-				
+
 				writer.write(
 						commit.getHash(),
 						file.getFullName(),
 						methods
 				);
-				
+
 			}
-			
+
 		} finally {
 			repo.getScm().reset();
 		}
 	}
-	
+
 
 	private String readFile(File f) {
 		try {
@@ -450,19 +392,33 @@ public class JavaParserVisitor implements CommitVisitor {
 }
 ```
 
-## Dealing with Threads
+## Debugging
+RepoDriller may mask exceptions thrown by client code. Good logging is a must.
 
-If your machine has multiple cores, RepoDriller can execute the commit visitor over many threads. This is just another configuration you set in _RepositoryMining_. The _withThreads()_ lets you configure the number of threads the framework will use to process everything.
+Don't worry if your CommitVisitors modify repository state. RepoDriller always visits a *clone* of the repository, never the "master" repository itself. So even if everything goes wrong, the original version of the repository you're analyzing is unharmed.
 
-We suggest you use threads unless your workflow must _checkout_ revisions. We only keep one copy of the repository on disk, so two threads would conflict if they both ran _checkout_.
+## Accelerating your analysis
+
+### Threads
+RepoDriller can divide the work of analyzing a repository among multiple threads. If your machine has several cores, this can significantly improve performance. However, your CommitVisitors must be thread-safe, and your analysis must tolerate visiting commits in a relatively arbitrary order.
+
+Here are the RepositoryMining APIs you should consider:
+- _visitorsAreThreadSafe(safe)_: Are all of your CommitVisitors thread-safe?
+- _visitorsChangeRepoState(change)_: Do any of your CommitVisitors have external effects, e.g. changing the on-disk repo state with _checkout()_?
+- _withThreads()_: Visit the current repo concurrently from multiple threads. Optionally specify a number of threads yourself.
+
+### Fast storage
+RepoDriller CommitVisitors always visit a *copy* of the repository being analyzed. By default RepoDriller stores this copy in the system-wide temporary directory. If your machine has faster storage available, e.g. RAM-based (like tmpfs or ramfs on Linux) or a partition on an SSD, try specifying this path with _setRepoTmpDir(path)_. This will be particularly helpful if your CommitVisitors must _checkout()_.
 
 ```java
 @Override
 public void execute() {
 	new RepositoryMining()
 		.in(GitRepository.singleProject("/Users/mauricioaniche/workspace/repodriller"))
-		.through(Commits.all())
-		.withThreads(3)
+		.through(Commits.all()) // Process all commits, not necessarily in this order.
+		.visitorsAreThreadSafe(true) // Threads are possible.
+		.visitorsChangeRepoState(true) // Each thread needs its own copy of the repo.
+		.withThreads() // Now pick a good number of threads for my machine.
 		.process(new JavaParserVisitor(), new CSVFile("/Users/mauricioaniche/Desktop/devs.csv"))
 		.mine();
 }
@@ -477,7 +433,7 @@ Existing variables:
 
 - *git.maxfiles*: The max quantity of files in a single commit. Commits with more files than this constant
 are ignored. Default is 200.
-  
+
 - *git.maxdiff*: The max number of lines in a diff. Diffs higher than that are ignored. Default is 100000.
 
 - *git.diffcontext*: The size of the content that is used by the diff algorithm. Default is git default.
@@ -490,16 +446,67 @@ are ignored. Default is 200.
 
 (not written yet)
 
+## Using ASTs to parse source code
 
-# How do I cite RepoDriller?
+Repodriller does not come with JDT or any other code parser (as it used to be in old versions).
+However, it naturally fits with such tools.
 
-For now, cite the repository. 
+The [repodriller JDT plugin](https://github.com/mauricioaniche/repodriller-plugin-jdt) adds all JDT libraries to your study.
+If you want to learn more about JDT, check the documentation for [ASTVisitor class](http://help.eclipse.org/juno/index.jsp?topic=%2Forg.eclipse.jdt.doc.isv%2Freference%2Fapi%2Forg%2Feclipse%2Fjdt%2Fcore%2Fdom%2FASTVisitor.html).
+In addition, if you are looking for traditional code metrics in Java, you may use our [CK project](https://github.com/mauricioaniche/ck).
 
-# How can I discuss about it?
+We currently do not have any out-of-the-box plugin for other languages. However, we do not expect any integration problems with them.
+
+# Advice to researchers
+
+## Difficulties in mining git
+
+You should read this paper:
+- Bird, Christian, et al. "The promises and perils of mining git." Mining Software Repositories, 2009. MSR'09. 6th IEEE International Working Conference on. IEEE, 2009. [Link](http://cs.queensu.ca/~ahmed/home/teaching/CISC880/F10/papers/MiningGit_MSR2009.pdf).
+
+# FAQs
+
+## Why use an MSR framework?
+
+There's no question that Mining Software Repositories (MSR) studies benefit from automation.
+The datasets are too large to analyze manually.
+
+So the choice is whether to use an MSR framework or to write your own scripts.
+An MSR framework offers two benefits:
+- The researcher can focus on their questions and not on the infrastructure.
+- Coding against a framework improves standardization and therefore reproducibility (see Robles, Gregorio. "Replicating MSR: A study of the potential replicability of papers published in the Mining Software Repositories proceedings." Mining Software Repositories (MSR), 2010 7th IEEE Working Conference on. IEEE, 2010.).
+
+## How is RepoDriller different from other MSR frameworks?
+
+RepoDriller is a minimalist's MSR framework, a lightweight tool for flexible analysis.
+- RepoDriller is *lightweight*:
+	1. It's a straightforward Java framework with the APIs you need -- no more, no less.
+	2. You pay for storage and computation when you need to. No significant pre-processing stage, no giant database.
+- RepoDriller is *flexible*:
+	1. Write arbitrary analyses in the popular Java programming language.
+	2. RepoDriller has the right knobs -- tune which commits you visit, how much concurrency you want, etc.
+
+Here's how it compares to some other MSR frameworks and tools:
+- [GHTorrent](http://ghtorrent.org/) lets you query GitHub events.
+	1. You are restricted to querying projects on GitHub.
+	2. You are restricted to the information exposed in a GitHub API.
+- [Boa](http://boa.cs.iastate.edu/) lets you query ASTs on a pre-defined set of repositories.
+	1. You are restricted to the repositories tracked by Boa.
+	2. You must write queries in the Boa language, largely against ASTs.
+	3. If you roll your own Boa cluster, you are restricted to repositories with languages that Boa can import (i.e. parse into ASTs).
+- [Alitheia Core](https://github.com/istlab/Alitheia-Core) is a scalable platform for MSR.
+	1. Alitheia-Core is a heavyweight approach. You pay a lot of up-front costs (configuration, pre-processing, etc.) in exchange for a scalable analysis. If you're doing exploratory research, the overhead may not be worth it.
+	2. Alitheia Core is no longer being maintained.
+
+## How do I cite RepoDriller?
+
+For now, cite the repository.
+
+## Is there a discussion forum?
 
 You can subscribe to our mailing list: https://groups.google.com/forum/#!forum/repodriller.
 
-# How to Contribute
+## How do I contribute?
 
 Required: Git, Maven.
 
@@ -519,4 +526,3 @@ Then, you can:
 # License
 
 This software is licensed under the Apache 2.0 License.
-

@@ -25,6 +25,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.repodriller.domain.ChangeSet;
 import org.repodriller.domain.Commit;
+import org.repodriller.domain.Modification;
 import org.repodriller.domain.ModificationType;
 import org.repodriller.scm.BlamedLine;
 import org.repodriller.scm.GitRepository;
@@ -278,6 +279,38 @@ public class GitRepositoryTest {
 	}
 	
 	@Test
+	public void shouldReturnDiffBetweenCommitsWithOneModification() {
+		String priorCommitHash = "71535a3";
+		String laterCommitHash = "953737b";
+		List<Modification> modifications = git1.getDiffBetweenCommits(priorCommitHash, laterCommitHash);
+		Assert.assertEquals(1, modifications.size());
+		Assert.assertEquals(ModificationType.MODIFY, modifications.get(0).getType());
+		Assert.assertEquals(3, modifications.get(0).getAdded());
+		Assert.assertEquals(0, modifications.get(0).getRemoved());
+		Assert.assertEquals("Matricula.java", modifications.get(0).getFileName());
+	}
+	
+	@Test
+	public void shouldReturnDiffWithManyModifications() {
+		String priorCommitHash = "8b17577";
+		String laterCommitHash = "f0dd130";
+		List<Modification> modifications = git3.getDiffBetweenCommits(priorCommitHash, laterCommitHash);
+		Assert.assertEquals(3, modifications.size());
+		
+		Modification first = modifications.get(0);
+		Assert.assertEquals(ModificationType.DELETE, first.getType());
+		Assert.assertEquals("Aluno.java", first.getFileName());
+		
+		Modification second = modifications.get(1);
+		Assert.assertEquals(ModificationType.RENAME, second.getType());
+		Assert.assertEquals(17, second.getAdded());
+		
+		Modification third = modifications.get(2);
+		Assert.assertEquals(ModificationType.ADD, third.getType());
+		Assert.assertEquals(52, third.getAdded());
+	}
+	
+	@Test
 	public void tags(){
 		String commitTag1 = git8.getCommitFromTag("tag1");
 		Assert.assertEquals("6bb9e2c6a8080e6b5b34e6e316c894b2ddbf7fcd", commitTag1);
@@ -288,7 +321,7 @@ public class GitRepositoryTest {
 	
 	@Test(expected=RuntimeException.class)
 	public void tagsException(){
-		git8.getCommitFromTag("tag3");
+		git8.getCommitFromTag("tag4");
 	}
 	
 }

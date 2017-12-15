@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -13,13 +15,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Logger;
+import org.repodriller.RepoDrillerException;
 import org.repodriller.domain.ChangeSet;
 import org.repodriller.domain.Commit;
 import org.repodriller.domain.Developer;
 import org.repodriller.domain.Modification;
 import org.repodriller.domain.ModificationType;
-import org.repodriller.util.FileUtils;
+import org.repodriller.util.RDFileUtils;
 import org.tmatesoft.svn.core.SVNDepth;
 import org.tmatesoft.svn.core.SVNDirEntry;
 import org.tmatesoft.svn.core.SVNException;
@@ -40,6 +44,7 @@ import org.tmatesoft.svn.core.wc.SVNUpdateClient;
  * @author Juliano Silva
  *
  */
+/* TODO Name: Sounds like it inherits SCMRepository, but it actually implements SCM. */
 public class SubversionRepository implements SCM {
 
 	private static final int MAX_SIZE_OF_A_DIFF = 100000;
@@ -100,7 +105,7 @@ public class SubversionRepository implements SCM {
 	public static SCMRepository[] allProjectsIn(String path, Integer maxNumberOfFilesInACommit) {
 		List<SCMRepository> repos = new ArrayList<SCMRepository>();
 
-		for (String dir : FileUtils.getAllDirsIn(path)) {
+		for (String dir : RDFileUtils.getAllDirsIn(path)) {
 			repos.add(singleProject(dir, maxNumberOfFilesInACommit));
 		}
 
@@ -163,6 +168,7 @@ public class SubversionRepository implements SCM {
 
 	@SuppressWarnings("rawtypes")
 	@Override
+	/* TODO Refactor as in GitRepository.getCommit. */
 	public Commit getCommit(String id) {
 		SVNRepository repository = null;
 
@@ -264,6 +270,12 @@ public class SubversionRepository implements SCM {
 			return "";
 		}
 	}
+	
+	@Override
+	public List<Modification> getDiffBetweenCommits(String priorCommit, String laterCommit) {
+		// TODO Not yet implemented for SVN.
+		throw new RepoDrillerException("This feature has not yet been implemented for Subversion repos.");
+	}
 
 	private ModificationType getModificationType(SVNLogEntryPath e) {
 		if (e.getType() == 'A') {
@@ -318,7 +330,7 @@ public class SubversionRepository implements SCM {
 	}
 
 	private List<File> getAllFilesInPath() {
-		return FileUtils.getAllFilesInPath(workingCopyPath);
+		return RDFileUtils.getAllFilesInPath(workingCopyPath);
 	}
 
 	private boolean isNotAnImportantFile(File f) {
@@ -443,7 +455,7 @@ public class SubversionRepository implements SCM {
 		// pull request me!
 		throw new RuntimeException("implement me!");
 	}
-	
+
 	public Integer getMaxNumberFilesInACommit() {
 		return maxNumberFilesInACommit;
 	}
@@ -453,5 +465,24 @@ public class SubversionRepository implements SCM {
 		// pull request me!
 		throw new RuntimeException("implement me!");
 	}
-	
+
+	@Override
+	public SCM clone(Path dest) {
+		log.info("Cloning to " + dest);
+		RDFileUtils.copyDirTree(Paths.get(path), dest);
+		return new GitRepository(dest.toString());
+	}
+
+	@Override
+	public void delete() {
+		// allow to be destroyed more than once
+		if (RDFileUtils.exists(Paths.get(path))) {
+			log.info("Deleting: " + path);
+			try {
+				FileUtils.deleteDirectory(new File(path.toString()));
+			} catch (IOException e) {
+				log.info("Delete failed: " + e);
+			}
+		}
+	}
 }
